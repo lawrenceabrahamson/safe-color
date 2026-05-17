@@ -4,29 +4,36 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#1a1610">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f0e6cc">
 <title>Field Scanner &middot; Tsetse Safe Color</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&family=DM+Mono:wght@400;500&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ground: #1a1610;
-    --ground-soft: #221c14;
-    --ground-line: #2e2618;
-    --paper: #f4ead5;
-    --paper-dim: #c8b89a;
-    --paper-faint: rgba(244, 234, 213, 0.55);
-    --gold: #c8a85a;
-    --gold-dim: rgba(200, 168, 90, 0.45);
-    --gold-faint: rgba(200, 168, 90, 0.18);
+    /* Parchment palette — all from the safe zone */
+    --parchment: #f0e6cc;
+    --parchment-soft: #e9dfc1;
+    --parchment-dim: #ddd0a8;
+    --ink-olive: #3a4530;
+    --ink-dim: #6b7256;
+    --ink-faint: rgba(58, 69, 48, 0.5);
+    --khaki: #b8a070;
+    --khaki-faint: rgba(184, 160, 112, 0.4);
+    --terracotta: #a85d3a;
+    --terracotta-soft: rgba(168, 93, 58, 0.18);
+
+    /* Verdict signaling — green/copper/red kept; mustard added for premium */
     --safe: #3a7d44;
     --caution: #b87333;
     --avoid: #c0392b;
-    --shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    --spook: #d4a017;
+
     --serif: "Playfair Display", "Times New Roman", serif;
     --mono: "DM Mono", "SFMono-Regular", Menlo, monospace;
+    --hand: "Caveat", "Snell Roundhand", cursive;
+    --shadow: 0 4px 18px rgba(58, 69, 48, 0.12);
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -34,8 +41,8 @@
   html, body {
     margin: 0;
     padding: 0;
-    background: var(--ground);
-    color: var(--paper);
+    background: var(--parchment);
+    color: var(--ink-olive);
     font-family: var(--mono);
     overscroll-behavior: none;
     min-height: 100vh;
@@ -48,7 +55,9 @@
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 
+  /* Paper texture: a faint dotted noise + a subtle warm wash */
   .app {
+    position: relative;
     width: 100%;
     max-width: 460px;
     display: flex;
@@ -56,60 +65,129 @@
     min-height: 100vh;
     min-height: 100dvh;
     background:
-      radial-gradient(120% 50% at 50% 0%, rgba(200, 168, 90, 0.06), transparent 60%),
-      var(--ground);
+      radial-gradient(110% 60% at 50% 0%, rgba(168, 93, 58, 0.06), transparent 60%),
+      radial-gradient(80% 50% at 50% 100%, rgba(58, 69, 48, 0.05), transparent 60%),
+      var(--parchment);
+    overflow: hidden;
   }
 
-  /* ------- HEADER ------- */
+  /* Dotted page margins — vertical lines down both sides */
+  .app::before,
+  .app::after {
+    content: "";
+    position: absolute;
+    top: 56px;
+    bottom: 56px;
+    width: 1px;
+    background-image: linear-gradient(to bottom, var(--khaki-faint) 50%, transparent 50%);
+    background-size: 1px 6px;
+    background-repeat: repeat-y;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .app::before { left: 10px; }
+  .app::after  { right: 10px; }
+
+  /* ===== HEADER ===== */
   .header {
-    padding: 22px 24px 18px;
+    position: relative;
+    padding: 22px 28px 16px;
     display: flex;
-    align-items: flex-end;
+    align-items: flex-start;
     justify-content: space-between;
-    border-bottom: 1px solid var(--ground-line);
+    gap: 14px;
+    z-index: 2;
+  }
+  .header::after {
+    content: "";
+    position: absolute;
+    left: 28px;
+    right: 28px;
+    bottom: 0;
+    height: 1px;
+    background:
+      linear-gradient(to right, transparent, var(--khaki) 10%, var(--khaki) 90%, transparent),
+      var(--khaki-faint);
+    background-size: 100% 1px, 100% 1px;
+    background-position: 0 1px, 0 0;
+    background-repeat: no-repeat;
+    opacity: 0.7;
   }
   .header-title {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    min-width: 0;
   }
   .eyebrow {
     font-family: var(--mono);
     font-size: 10px;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--ink-dim);
   }
   .wordmark {
     font-family: var(--serif);
-    font-weight: 500;
+    font-weight: 600;
     font-style: italic;
-    font-size: 24px;
+    font-size: 26px;
     line-height: 1;
-    color: var(--paper);
-    letter-spacing: 0.01em;
+    color: var(--ink-olive);
+    letter-spacing: 0.005em;
   }
-  .mark {
-    width: 38px;
-    height: 38px;
-    border: 1px solid var(--gold-dim);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--gold);
-    font-family: var(--serif);
-    font-style: italic;
-    font-size: 16px;
+  .wordmark-rule {
+    margin-top: 4px;
+    width: 60px;
+    height: 8px;
+    overflow: visible;
+  }
+  .wordmark-rule path {
+    stroke: var(--terracotta);
+    stroke-width: 1.6;
+    fill: none;
+    stroke-linecap: round;
+    opacity: 0.85;
   }
 
-  /* ------- CAMERA ------- */
+  /* Mode toggle (Tsetse / Wildlife) */
+  .mode-toggle {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    background: var(--parchment-soft);
+    border: 1px solid var(--khaki);
+    border-radius: 999px;
+    padding: 3px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    user-select: none;
+    cursor: pointer;
+  }
+  .mode-toggle .opt {
+    padding: 5px 10px;
+    border-radius: 999px;
+    color: var(--ink-dim);
+    transition: background 200ms ease, color 200ms ease;
+  }
+  .mode-toggle .opt.active {
+    background: var(--ink-olive);
+    color: var(--parchment);
+  }
+  .mode-toggle .opt.wildlife.active {
+    background: var(--terracotta);
+  }
+
+  /* ===== STAGE / CAMERA ===== */
   .stage {
     position: relative;
     width: 100%;
     aspect-ratio: 3 / 4;
-    background: #000;
+    background: #15110a;
     overflow: hidden;
+    z-index: 2;
   }
   .stage video,
   .stage canvas.preview {
@@ -118,7 +196,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    background: #000;
+    background: #15110a;
   }
   .stage::before {
     content: "";
@@ -126,23 +204,29 @@
     inset: 0;
     pointer-events: none;
     background:
-      linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 70%, rgba(0,0,0,0.55) 100%);
+      linear-gradient(180deg, rgba(0,0,0,0.30) 0%, transparent 22%, transparent 78%, rgba(0,0,0,0.45) 100%);
     z-index: 2;
   }
 
-  /* Corner brackets — Leica framing feel */
+  /* Hand-drawn corner brackets (SVG) */
   .frame-corner {
     position: absolute;
-    width: 28px;
-    height: 28px;
-    border: 1px solid var(--gold);
-    opacity: 0.7;
+    width: 36px;
+    height: 36px;
     z-index: 3;
+    opacity: 0.85;
+    pointer-events: none;
   }
-  .frame-corner.tl { top: 18px; left: 18px; border-right: none; border-bottom: none; }
-  .frame-corner.tr { top: 18px; right: 18px; border-left: none; border-bottom: none; }
-  .frame-corner.bl { bottom: 18px; left: 18px; border-right: none; border-top: none; }
-  .frame-corner.br { bottom: 18px; right: 18px; border-left: none; border-top: none; }
+  .frame-corner.tl { top: 16px; left: 16px; }
+  .frame-corner.tr { top: 16px; right: 16px; transform: scaleX(-1); }
+  .frame-corner.bl { bottom: 16px; left: 16px; transform: scaleY(-1); }
+  .frame-corner.br { bottom: 16px; right: 16px; transform: scale(-1, -1); }
+  .frame-corner path {
+    stroke: var(--parchment);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    fill: none;
+  }
 
   /* Center crosshair */
   .crosshair {
@@ -158,28 +242,29 @@
   .crosshair .ring {
     position: absolute;
     inset: 0;
-    border: 1px solid var(--gold);
+    border: 1px solid var(--parchment);
     border-radius: 50%;
-    opacity: 0.85;
+    opacity: 0.9;
   }
   .crosshair .ring.inner {
     inset: 32px;
-    border-color: var(--gold-dim);
+    border-color: var(--terracotta);
+    opacity: 0.7;
   }
   .crosshair .tick {
     position: absolute;
-    background: var(--gold);
-    opacity: 0.7;
+    background: var(--parchment);
+    opacity: 0.8;
   }
   .crosshair .tick.t { top: -8px; left: 50%; transform: translateX(-50%); width: 1px; height: 8px; }
   .crosshair .tick.b { bottom: -8px; left: 50%; transform: translateX(-50%); width: 1px; height: 8px; }
   .crosshair .tick.l { left: -8px; top: 50%; transform: translateY(-50%); width: 8px; height: 1px; }
   .crosshair .tick.r { right: -8px; top: 50%; transform: translateY(-50%); width: 8px; height: 1px; }
 
-  /* Live read indicator (small chip top-left) */
+  /* Live read chip (centred, top) */
   .live-chip {
     position: absolute;
-    top: 18px;
+    top: 16px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 4;
@@ -187,23 +272,23 @@
     align-items: center;
     gap: 8px;
     padding: 6px 12px;
-    background: rgba(26, 22, 16, 0.6);
+    background: rgba(21, 17, 10, 0.55);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--gold-faint);
+    border: 1px solid rgba(240, 230, 204, 0.25);
     border-radius: 999px;
     font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.18em;
+    font-size: 9px;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: var(--paper-dim);
+    color: var(--parchment);
   }
   .live-dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--gold);
-    box-shadow: 0 0 8px var(--gold);
+    background: var(--terracotta);
+    box-shadow: 0 0 8px var(--terracotta);
     animation: pulse 1.8s ease-in-out infinite;
   }
   @keyframes pulse {
@@ -211,36 +296,89 @@
     50% { opacity: 1; transform: scale(1.1); }
   }
 
-  /* Sampled color preview (bottom-right) */
+  /* Flip icon overlaid in the camera (top-right) */
+  .flip-icon {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 4;
+    width: 32px;
+    height: 32px;
+    border: 1px solid rgba(240, 230, 204, 0.35);
+    border-radius: 50%;
+    background: rgba(21, 17, 10, 0.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--parchment);
+    cursor: pointer;
+    transition: transform 200ms ease;
+  }
+  .flip-icon:active { transform: scale(0.92) rotate(180deg); }
+  .flip-icon svg { width: 16px; height: 16px; stroke: var(--parchment); stroke-width: 1.6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Sampled colour preview (bottom-right) */
   .swatch-preview {
     position: absolute;
-    bottom: 18px;
-    right: 18px;
+    bottom: 16px;
+    right: 16px;
     z-index: 4;
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 10px 8px 8px;
-    background: rgba(26, 22, 16, 0.65);
+    padding: 8px 12px 8px 8px;
+    background: rgba(21, 17, 10, 0.55);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--gold-faint);
+    border: 1px solid rgba(240, 230, 204, 0.25);
     border-radius: 14px;
   }
   .swatch-preview .chip {
     width: 26px;
     height: 26px;
     border-radius: 8px;
-    background: #333;
-    border: 1px solid rgba(244, 234, 213, 0.15);
+    background: #555;
+    border: 1px solid rgba(240, 230, 204, 0.2);
     transition: background 220ms ease;
   }
   .swatch-preview .hex {
     font-family: var(--mono);
     font-size: 10px;
     letter-spacing: 0.12em;
-    color: var(--paper-dim);
+    color: var(--parchment);
     text-transform: uppercase;
+    opacity: 0.85;
+  }
+
+  /* Field note number (bottom-left) */
+  .field-note {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    z-index: 4;
+    padding: 6px 12px;
+    background: rgba(21, 17, 10, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(240, 230, 204, 0.25);
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--parchment);
+  }
+  .field-note em {
+    font-family: var(--serif);
+    font-style: italic;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    color: var(--parchment);
+    margin-left: 4px;
+    font-size: 11px;
+    opacity: 0.95;
   }
 
   /* Camera-off / permission state */
@@ -255,18 +393,18 @@
     gap: 14px;
     padding: 32px;
     text-align: center;
-    background: linear-gradient(180deg, #1a1610, #0f0c08);
+    background: linear-gradient(180deg, #15110a, #0a0805);
   }
   .stage-fallback.show { display: flex; }
   .stage-fallback .icon {
     width: 44px;
     height: 44px;
-    border: 1px solid var(--gold-dim);
+    border: 1px solid var(--khaki);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--gold);
+    color: var(--khaki);
     font-family: var(--serif);
     font-style: italic;
   }
@@ -275,15 +413,16 @@
     font-family: var(--mono);
     font-size: 12px;
     line-height: 1.6;
-    color: var(--paper-dim);
+    color: var(--parchment);
+    opacity: 0.85;
     max-width: 280px;
   }
   .stage-fallback .start {
     margin-top: 6px;
     padding: 10px 22px;
     background: transparent;
-    border: 1px solid var(--gold);
-    color: var(--gold);
+    border: 1px solid var(--khaki);
+    color: var(--khaki);
     font-family: var(--mono);
     font-size: 11px;
     letter-spacing: 0.22em;
@@ -292,39 +431,55 @@
     cursor: pointer;
   }
 
-  /* ------- VERDICT ------- */
+  /* ===== VERDICT PANEL ===== */
   .verdict {
-    padding: 26px 24px 22px;
-    border-bottom: 1px solid var(--ground-line);
-    background: linear-gradient(180deg, var(--ground) 0%, var(--ground-soft) 100%);
+    position: relative;
+    padding: 22px 28px 20px;
+    background:
+      linear-gradient(180deg, var(--parchment) 0%, var(--parchment-soft) 100%);
     transition: background 320ms ease;
+    z-index: 2;
   }
+  .verdict::before,
+  .verdict::after {
+    content: "";
+    position: absolute;
+    left: 28px;
+    right: 28px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--khaki) 10%, var(--khaki) 90%, transparent);
+    opacity: 0.4;
+  }
+  .verdict::before { top: 0; }
+  .verdict::after { bottom: 0; }
+
   .verdict-row {
     display: flex;
     align-items: center;
     gap: 14px;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
   .verdict-dot {
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: var(--paper-faint);
-    box-shadow: 0 0 0 4px rgba(244, 234, 213, 0.08);
+    background: var(--ink-faint);
+    box-shadow: 0 0 0 4px rgba(58, 69, 48, 0.08);
     transition: background 320ms ease, box-shadow 320ms ease;
+    flex-shrink: 0;
   }
   .verdict-eyebrow {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
     min-width: 0;
   }
   .verdict-label {
     font-family: var(--mono);
     font-size: 11px;
-    letter-spacing: 0.28em;
+    letter-spacing: 0.26em;
     text-transform: uppercase;
-    color: var(--paper-dim);
+    color: var(--ink-dim);
     line-height: 1.1;
   }
   .verdict-sub {
@@ -334,43 +489,42 @@
     font-size: 14px;
     line-height: 1.15;
     letter-spacing: 0.005em;
-    color: var(--paper-dim);
-    opacity: 0.85;
+    color: var(--ink-dim);
+    opacity: 0.9;
   }
   .verdict-name {
     font-family: var(--serif);
     font-weight: 500;
-    font-size: 30px;
-    line-height: 1.1;
-    color: var(--paper);
+    font-size: 28px;
+    line-height: 1.12;
+    color: var(--ink-olive);
     margin: 0 0 8px;
-    letter-spacing: 0.005em;
   }
   .verdict-detail {
     font-family: var(--mono);
     font-size: 12px;
     line-height: 1.55;
-    color: var(--paper-dim);
+    color: var(--ink-dim);
     margin: 0;
-    max-width: 38ch;
+    max-width: 40ch;
   }
 
   /* Verdict tints */
-  .verdict.safe .verdict-dot { background: var(--safe); box-shadow: 0 0 0 4px rgba(58, 125, 68, 0.18); }
+  .verdict.safe .verdict-dot { background: var(--safe); box-shadow: 0 0 0 4px rgba(58, 125, 68, 0.16); }
   .verdict.safe .verdict-label { color: var(--safe); }
-
   .verdict.caution .verdict-dot { background: var(--caution); box-shadow: 0 0 0 4px rgba(184, 115, 51, 0.18); }
   .verdict.caution .verdict-label { color: var(--caution); }
-
   .verdict.avoid .verdict-dot { background: var(--avoid); box-shadow: 0 0 0 4px rgba(192, 57, 43, 0.2); }
   .verdict.avoid .verdict-label { color: var(--avoid); }
+  .verdict.spook .verdict-dot { background: var(--spook); box-shadow: 0 0 0 4px rgba(212, 160, 23, 0.22); }
+  .verdict.spook .verdict-label { color: #9c7610; }
 
-  /* ------- CONTROLS ------- */
+  /* ===== CONTROLS ===== */
   .controls {
     display: flex;
     gap: 12px;
-    padding: 20px 24px 26px;
-    border-bottom: 1px solid var(--ground-line);
+    padding: 18px 28px 14px;
+    z-index: 2;
   }
   .btn {
     flex: 1;
@@ -380,37 +534,89 @@
     justify-content: center;
     gap: 6px;
     padding: 14px 8px;
-    background: transparent;
-    border: 1px solid var(--gold-faint);
+    background: var(--parchment-soft);
+    border: 1px solid var(--khaki);
     border-radius: 14px;
-    color: var(--paper);
+    color: var(--ink-olive);
     font-family: var(--mono);
     font-size: 10px;
     letter-spacing: 0.22em;
     text-transform: uppercase;
     cursor: pointer;
-    transition: border-color 160ms ease, background 160ms ease, transform 60ms ease;
+    transition: border-color 160ms ease, background 160ms ease, transform 60ms ease, opacity 160ms ease;
   }
   .btn:active {
     transform: scale(0.98);
-    background: rgba(200, 168, 90, 0.06);
-  }
-  .btn.primary {
-    border-color: var(--gold);
-    color: var(--gold);
+    background: var(--parchment-dim);
   }
   .btn .glyph {
     font-family: var(--serif);
     font-style: italic;
     font-size: 18px;
     line-height: 1;
-    color: var(--gold);
+    color: var(--terracotta);
+  }
+  .btn.primary {
+    border-color: var(--terracotta);
+    color: var(--terracotta);
+  }
+  .btn.primary .glyph { color: var(--terracotta); }
+  /* Pack button states reflect current verdict */
+  .btn.pack[data-state="safe"]    { border-color: var(--safe); color: var(--safe); }
+  .btn.pack[data-state="safe"] .glyph { color: var(--safe); }
+  .btn.pack[data-state="caution"] { border-color: var(--caution); color: var(--caution); box-shadow: 0 0 0 1px var(--caution) inset; }
+  .btn.pack[data-state="caution"] .glyph { color: var(--caution); }
+  .btn.pack[data-state="disabled"] {
+    opacity: 0.35;
+    cursor: not-allowed;
+    color: var(--ink-dim);
+    border-color: var(--khaki-faint);
+  }
+  .btn.pack[data-state="disabled"] .glyph { color: var(--ink-dim); }
+
+  /* ===== PACK PROGRESS BAR ===== */
+  .pack-progress {
+    margin: 0 28px;
+    padding: 12px 14px;
+    background: transparent;
+    border-top: 1px dashed var(--khaki-faint);
+    border-bottom: 1px dashed var(--khaki-faint);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    cursor: pointer;
+    transition: color 160ms ease;
+    z-index: 2;
+  }
+  .pack-progress:active { color: var(--terracotta); }
+  .pack-progress .count {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    letter-spacing: 0.01em;
+    text-transform: none;
+    color: var(--ink-olive);
+  }
+  .pack-progress .arrow {
+    font-family: var(--serif);
+    font-size: 16px;
+    color: var(--terracotta);
+  }
+  .pack-progress .count strong {
+    font-weight: 600;
+    font-style: normal;
   }
 
-  /* ------- FOOTER / META ------- */
+  /* ===== FOOTER / META ===== */
   .meta {
     margin-top: auto;
-    padding: 18px 24px 28px;
+    padding: 18px 28px 28px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -418,12 +624,13 @@
     font-size: 9px;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: var(--paper-faint);
+    color: var(--ink-faint);
+    z-index: 2;
   }
   .meta .rule {
     flex: 1;
     height: 1px;
-    background: var(--ground-line);
+    background: var(--khaki-faint);
     margin: 0 14px;
   }
 
@@ -433,32 +640,457 @@
     from { opacity: 0; transform: translateY(2px); }
     to { opacity: 1; transform: none; }
   }
+
+  /* ===== PACK SHEET (modal at bottom for adding an item) ===== */
+  .scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(21, 17, 10, 0.55);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 220ms ease;
+  }
+  .scrim.show { opacity: 1; pointer-events: auto; }
+
+  .sheet {
+    position: fixed;
+    left: 50%;
+    bottom: 0;
+    transform: translate(-50%, 100%);
+    width: 100%;
+    max-width: 460px;
+    background: var(--parchment);
+    border-top: 1px solid var(--khaki);
+    border-radius: 18px 18px 0 0;
+    padding: 18px 24px calc(24px + env(safe-area-inset-bottom));
+    box-shadow: 0 -8px 32px rgba(58, 69, 48, 0.18);
+    z-index: 60;
+    transition: transform 280ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .sheet.show { transform: translate(-50%, 0); }
+  .sheet-handle {
+    width: 38px;
+    height: 4px;
+    background: var(--khaki-faint);
+    border-radius: 999px;
+    margin: 0 auto 14px;
+  }
+  .sheet h2 {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 22px;
+    margin: 0 0 4px;
+    color: var(--ink-olive);
+  }
+  .sheet .sheet-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 10px;
+  }
+  .sheet .scan-swatch {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    padding: 6px 10px 6px 6px;
+    background: var(--parchment-soft);
+    border: 1px solid var(--khaki-faint);
+    border-radius: 10px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--ink-dim);
+  }
+  .sheet .scan-swatch span.chip {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    background: #888;
+    border: 1px solid rgba(58, 69, 48, 0.15);
+  }
+  .sheet label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 12px 0 6px;
+  }
+  .sheet input[type="text"],
+  .sheet select {
+    width: 100%;
+    padding: 12px 14px;
+    font-family: var(--serif);
+    font-size: 17px;
+    font-style: italic;
+    color: var(--ink-olive);
+    background: var(--parchment-soft);
+    border: 1px solid var(--khaki);
+    border-radius: 10px;
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+    transition: border-color 160ms ease;
+  }
+  .sheet select {
+    font-style: normal;
+    font-family: var(--mono);
+    font-size: 14px;
+    background-image: linear-gradient(45deg, transparent 50%, var(--ink-dim) 50%), linear-gradient(135deg, var(--ink-dim) 50%, transparent 50%);
+    background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+    background-size: 5px 5px;
+    background-repeat: no-repeat;
+    padding-right: 38px;
+  }
+  .sheet input[type="text"]:focus,
+  .sheet select:focus { border-color: var(--terracotta); }
+
+  .sheet-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .sheet-actions button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid var(--khaki);
+    background: transparent;
+    color: var(--ink-dim);
+  }
+  .sheet-actions button.confirm {
+    background: var(--ink-olive);
+    border-color: var(--ink-olive);
+    color: var(--parchment);
+  }
+  .sheet-actions button:active { transform: scale(0.98); }
+
+  /* ===== PACK LIST OVERLAY (full-screen) ===== */
+  .packlist {
+    position: fixed;
+    inset: 0;
+    background: var(--parchment);
+    z-index: 70;
+    transform: translateY(100%);
+    transition: transform 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .packlist.show { transform: translateY(0); }
+  .packlist-header {
+    position: relative;
+    padding: calc(20px + env(safe-area-inset-top)) 28px 14px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px;
+    border-bottom: 1px dashed var(--khaki-faint);
+  }
+  .packlist-header .title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .packlist-header .eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .packlist-header h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-style: italic;
+    font-size: 26px;
+    margin: 0;
+    color: var(--ink-olive);
+  }
+  .packlist-close {
+    border: 1px solid var(--khaki);
+    background: var(--parchment-soft);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-dim);
+    cursor: pointer;
+    font-family: var(--serif);
+    font-size: 22px;
+    line-height: 1;
+  }
+  .packlist-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 24px 32px;
+  }
+
+  /* Bush Ready badge */
+  .badge {
+    margin: 16px 4px 22px;
+    padding: 14px 16px;
+    background: var(--parchment-soft);
+    border: 1px solid var(--khaki);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: opacity 220ms ease, border-color 220ms ease;
+  }
+  .badge.locked { opacity: 0.42; border-style: dashed; }
+  .badge .stamp {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--terracotta);
+    color: var(--terracotta);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 18px;
+    transform: rotate(-8deg);
+    flex-shrink: 0;
+  }
+  .badge.locked .stamp { border-color: var(--ink-dim); color: var(--ink-dim); }
+  .badge .stamp-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .badge .stamp-text strong {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--terracotta);
+  }
+  .badge.locked .stamp-text strong { color: var(--ink-dim); }
+  .badge .stamp-text em {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-olive);
+  }
+
+  /* Category sections */
+  .cat-section {
+    margin: 12px 4px 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--khaki-faint);
+  }
+  .cat-section:last-child { border-bottom: none; }
+  .cat-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    gap: 10px;
+  }
+  .cat-name {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 17px;
+    color: var(--ink-olive);
+  }
+  .cat-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .cat-progress.met { color: var(--safe); }
+  .cat-checks {
+    display: inline-flex;
+    gap: 4px;
+  }
+  .cat-checks .pip {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 1px solid var(--ink-dim);
+  }
+  .cat-checks .pip.filled { background: var(--safe); border-color: var(--safe); }
+  .item-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 6px;
+    border-radius: 8px;
+  }
+  .item-row .item-chip {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid rgba(58, 69, 48, 0.18);
+    flex-shrink: 0;
+  }
+  .item-row .item-name {
+    flex: 1;
+    font-family: var(--serif);
+    font-size: 15px;
+    color: var(--ink-olive);
+  }
+  .item-row .item-date {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .item-row .item-del {
+    border: none;
+    background: transparent;
+    color: var(--ink-faint);
+    font-family: var(--serif);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+  .item-row .item-del:active { color: var(--terracotta); }
+  .cat-empty {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink-faint);
+    padding: 4px 6px;
+  }
+
+  /* ===== EASTER EGG OVERLAY ===== */
+  .easter {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: var(--parchment);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 32px;
+    gap: 18px;
+    cursor: pointer;
+  }
+  .easter.show { display: flex; }
+  .easter-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--terracotta);
+    margin-bottom: 4px;
+  }
+  .easter svg.acacia {
+    width: 280px;
+    max-width: 80vw;
+    height: auto;
+  }
+  .easter svg.acacia path {
+    stroke: var(--ink-olive);
+    stroke-width: 1.6;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .easter .dispatch {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 20px;
+    line-height: 1.4;
+    color: var(--ink-olive);
+    text-align: center;
+    max-width: 28ch;
+    min-height: 4.2em;
+  }
+  .easter .signed {
+    font-family: var(--hand);
+    font-size: 24px;
+    color: var(--terracotta);
+    opacity: 0;
+    transition: opacity 600ms ease 200ms;
+  }
+  .easter.signed-in .signed { opacity: 1; }
+  .easter .dismiss-hint {
+    margin-top: 18px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    opacity: 0;
+    transition: opacity 600ms ease 1200ms;
+  }
+  .easter.signed-in .dismiss-hint { opacity: 1; }
+  .caret { display: inline-block; width: 0.55em; background: var(--ink-olive); color: transparent; margin-left: 1px; animation: blink 1s steps(2, end) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
 </style>
 </head>
 <body>
   <div class="app">
 
+    <!-- ===== HEADER ===== -->
     <header class="header">
       <div class="header-title">
-        <span class="eyebrow">Field Instrument &middot; No. 01</span>
+        <span class="eyebrow">Field Note <em id="noteNumber" style="font-style: italic; font-family: var(--serif); text-transform: none; letter-spacing: 0.02em; font-size: 12px; color: var(--terracotta);">No. 001</em></span>
         <span class="wordmark">Safe Color</span>
+        <svg class="wordmark-rule" viewBox="0 0 60 8" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M 1 5 Q 15 2 30 4 T 59 5" />
+        </svg>
       </div>
-      <div class="mark" aria-hidden="true">S</div>
+      <div class="mode-toggle" id="modeToggle" role="switch" aria-checked="false" tabindex="0">
+        <span class="opt tsetse active" data-mode="tsetse">Tsetse</span>
+        <span class="opt wildlife" data-mode="wildlife">Wildlife</span>
+      </div>
     </header>
 
+    <!-- ===== STAGE / CAMERA ===== -->
     <section class="stage" id="stage">
       <video id="video" autoplay playsinline muted></video>
       <canvas class="preview" id="preview" hidden></canvas>
 
-      <span class="frame-corner tl"></span>
-      <span class="frame-corner tr"></span>
-      <span class="frame-corner bl"></span>
-      <span class="frame-corner br"></span>
+      <!-- Hand-drawn corner brackets -->
+      <svg class="frame-corner tl" viewBox="0 0 36 36" aria-hidden="true">
+        <path d="M 2 14 Q 2.5 8 4 4 Q 8 2.6 14 2" />
+      </svg>
+      <svg class="frame-corner tr" viewBox="0 0 36 36" aria-hidden="true">
+        <path d="M 2 14 Q 2.5 8 4 4 Q 8 2.6 14 2" />
+      </svg>
+      <svg class="frame-corner bl" viewBox="0 0 36 36" aria-hidden="true">
+        <path d="M 2 14 Q 2.5 8 4 4 Q 8 2.6 14 2" />
+      </svg>
+      <svg class="frame-corner br" viewBox="0 0 36 36" aria-hidden="true">
+        <path d="M 2 14 Q 2.5 8 4 4 Q 8 2.6 14 2" />
+      </svg>
 
       <div class="live-chip" id="liveChip">
         <span class="live-dot"></span>
         <span>Sampling</span>
       </div>
+
+      <button class="flip-icon" id="flipIcon" aria-label="Flip camera">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h14l-2-2 M21 17H7l2 2" /><circle cx="12" cy="12" r="3" /></svg>
+      </button>
 
       <div class="crosshair">
         <div class="ring"></div>
@@ -467,6 +1099,10 @@
         <span class="tick b"></span>
         <span class="tick l"></span>
         <span class="tick r"></span>
+      </div>
+
+      <div class="field-note" id="fieldNoteChip">
+        <span>Note</span><em id="fieldNoteNum">001</em>
       </div>
 
       <div class="swatch-preview" id="swatchPreview">
@@ -481,6 +1117,7 @@
       </div>
     </section>
 
+    <!-- ===== VERDICT PANEL ===== -->
     <section class="verdict" id="verdict">
       <div class="verdict-row">
         <span class="verdict-dot"></span>
@@ -493,78 +1130,254 @@
       <p class="verdict-detail" id="verdictDetail">Center the target on a flat patch of fabric in natural light. A reading is taken every two seconds.</p>
     </section>
 
+    <!-- ===== CONTROLS ===== -->
     <div class="controls">
       <button class="btn primary" id="scanBtn" type="button">
         <span class="glyph">&#9678;</span>
         Scan
       </button>
-      <button class="btn" id="flipBtn" type="button">
-        <span class="glyph">&#8634;</span>
-        Flip
+      <button class="btn pack" id="packBtn" type="button" data-state="disabled" disabled>
+        <span class="glyph">+</span>
+        Pack
       </button>
     </div>
 
+    <!-- ===== PACK PROGRESS BAR ===== -->
+    <div class="pack-progress" id="packProgress" role="button" tabindex="0">
+      <span>Pack list</span>
+      <span class="count"><strong id="packCount">0</strong> of 20 packed</span>
+      <span class="arrow">&rarr;</span>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
     <footer class="meta">
       <span>Lat. tsetse studies</span>
       <span class="rule"></span>
-      <span>v 0.1</span>
+      <span>v 0.2</span>
     </footer>
 
+  </div>
+
+  <!-- ===== PACK SHEET ===== -->
+  <div class="scrim" id="scrim"></div>
+  <div class="sheet" id="packSheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet-handle"></div>
+    <div class="sheet-eyebrow">Add to pack list</div>
+    <h2 id="sheetTitle">A new field entry</h2>
+
+    <div class="scan-swatch">
+      <span class="chip" id="sheetChip"></span>
+      <span id="sheetColorName">&mdash;</span>
+    </div>
+
+    <label for="garmentName">Garment name</label>
+    <input type="text" id="garmentName" placeholder="e.g. Linen safari shirt" autocomplete="off">
+
+    <label for="garmentCategory">Category</label>
+    <select id="garmentCategory">
+      <option value="sock">Sock</option>
+      <option value="undershirt">Undershirt</option>
+      <option value="pant">Pant</option>
+      <option value="short">Short</option>
+      <option value="overshirt">Overshirt</option>
+      <option value="footwear">Footwear</option>
+      <option value="hat">Hat</option>
+      <option value="jacket">Jacket</option>
+      <option value="scarf">Scarf / Bandana</option>
+      <option value="sleepwear">Sleepwear</option>
+      <option value="swimwear">Swimwear</option>
+    </select>
+
+    <div class="sheet-actions">
+      <button id="sheetCancel">Cancel</button>
+      <button id="sheetConfirm" class="confirm">Add to pack</button>
+    </div>
+  </div>
+
+  <!-- ===== PACK LIST OVERLAY ===== -->
+  <div class="packlist" id="packlist" role="dialog" aria-modal="true" aria-labelledby="packlistTitle">
+    <header class="packlist-header">
+      <div class="title">
+        <span class="eyebrow">The Suitcase</span>
+        <h2 id="packlistTitle">Pack List</h2>
+      </div>
+      <button class="packlist-close" id="packlistClose" aria-label="Close pack list">&times;</button>
+    </header>
+    <div class="packlist-body" id="packlistBody"></div>
+  </div>
+
+  <!-- ===== EASTER EGG ===== -->
+  <div class="easter" id="easter" role="dialog" aria-modal="true">
+    <span class="easter-eyebrow">Field Officer&rsquo;s dispatch</span>
+    <svg class="acacia" id="acaciaSvg" viewBox="0 0 200 140" aria-hidden="true">
+      <!-- Trunk -->
+      <path id="acaciaTrunk" d="M 100 138 Q 101 125 100 112" />
+      <!-- Canopy left half -->
+      <path id="acaciaLeft" d="M 100 112 Q 92 100 78 96 Q 60 91 44 92 Q 32 92 24 87" />
+      <!-- Canopy top -->
+      <path id="acaciaTop" d="M 24 87 Q 60 80 100 82 Q 140 80 176 87" />
+      <!-- Canopy right half -->
+      <path id="acaciaRight" d="M 176 87 Q 168 92 156 92 Q 140 91 122 96 Q 108 100 100 112" />
+      <!-- Small inner branches -->
+      <path id="acaciaBranch1" d="M 100 112 Q 90 105 82 102" />
+      <path id="acaciaBranch2" d="M 100 112 Q 110 105 118 102" />
+    </svg>
+    <div class="dispatch" id="dispatchText"><span class="caret">.</span></div>
+    <div class="signed">— The Field Officer</div>
+    <div class="dismiss-hint">Tap anywhere to dismiss</div>
   </div>
 
 <script>
 (function () {
   "use strict";
 
-  // ----- DOM -----
-  var video = document.getElementById("video");
-  var preview = document.getElementById("preview");
-  var stage = document.getElementById("stage");
-  var swatchChip = document.getElementById("swatchChip");
-  var swatchHex = document.getElementById("swatchHex");
-  var verdict = document.getElementById("verdict");
-  var verdictLabel = document.getElementById("verdictLabel");
-  var verdictSub = document.getElementById("verdictSub");
-  var verdictName = document.getElementById("verdictName");
-  var verdictDetail = document.getElementById("verdictDetail");
+  // ===== STORAGE =====
+  var LS = {
+    mode: "safeColor.mode",
+    note: "safeColor.noteNumber",
+    pack: "safeColor.packList",
+    stamp: "safeColor.bushReadyStamp",
+    eggSeen: "safeColor.easterSeen"
+  };
 
-  // Two-line eyebrow labels per verdict. Top line is the call.
-  // Italic line underneath is the wink underneath.
+  function lsGet(k, fallback) {
+    try {
+      var v = localStorage.getItem(k);
+      if (v === null || v === undefined) return fallback;
+      return v;
+    } catch (e) { return fallback; }
+  }
+  function lsSet(k, v) {
+    try { localStorage.setItem(k, v); } catch (e) {}
+  }
+
+  // ===== CONFIG =====
+  var CATEGORIES = [
+    { id: "sock",       label: "Sock",            min: 4 },
+    { id: "undershirt", label: "Undershirt",      min: 4 },
+    { id: "pant",       label: "Pant",            min: 2 },
+    { id: "short",      label: "Short",           min: 2 },
+    { id: "overshirt",  label: "Overshirt",       min: 2 },
+    { id: "footwear",   label: "Footwear",        min: 1 },
+    { id: "hat",        label: "Hat",             min: 1 },
+    { id: "jacket",     label: "Jacket",          min: 1 },
+    { id: "scarf",      label: "Scarf / Bandana", min: 1 },
+    { id: "sleepwear",  label: "Sleepwear",       min: 1 },
+    { id: "swimwear",   label: "Swimwear",        min: 1 }
+  ];
+  var TOTAL_MIN = CATEGORIES.reduce(function (sum, c) { return sum + c.min; }, 0);
+
   var VERDICT_LABELS = {
     safe:    { main: "Bush-approved",     sub: "tsetse invisibility" },
     caution: { main: "Bush-borderline",   sub: "approach with caution" },
-    avoid:   { main: "Avoid in the bush", sub: "tsetse magnet" }
+    avoid:   { main: "Avoid in the bush", sub: "tsetse magnet" },
+    spook:   { main: "Spooks the game",   sub: "rhino bait" }
   };
-  var fallback = document.getElementById("fallback");
-  var fallbackText = document.getElementById("fallbackText");
-  var startBtn = document.getElementById("startBtn");
-  var scanBtn = document.getElementById("scanBtn");
-  var flipBtn = document.getElementById("flipBtn");
 
-  // ----- State -----
+  // ===== DOM =====
+  var $ = function (id) { return document.getElementById(id); };
+  var video = $("video");
+  var stage = $("stage");
+  var swatchChip = $("swatchChip");
+  var swatchHex = $("swatchHex");
+  var verdict = $("verdict");
+  var verdictLabel = $("verdictLabel");
+  var verdictSub = $("verdictSub");
+  var verdictName = $("verdictName");
+  var verdictDetail = $("verdictDetail");
+  var fallback = $("fallback");
+  var fallbackText = $("fallbackText");
+  var startBtn = $("startBtn");
+  var scanBtn = $("scanBtn");
+  var packBtn = $("packBtn");
+  var flipIcon = $("flipIcon");
+  var fieldNoteNum = $("fieldNoteNum");
+  var noteNumberHeader = $("noteNumber");
+  var modeToggle = $("modeToggle");
+  var packProgress = $("packProgress");
+  var packCount = $("packCount");
+
+  var scrim = $("scrim");
+  var packSheet = $("packSheet");
+  var sheetChip = $("sheetChip");
+  var sheetColorName = $("sheetColorName");
+  var garmentName = $("garmentName");
+  var garmentCategory = $("garmentCategory");
+  var sheetCancel = $("sheetCancel");
+  var sheetConfirm = $("sheetConfirm");
+
+  var packlist = $("packlist");
+  var packlistClose = $("packlistClose");
+  var packlistBody = $("packlistBody");
+
+  var easter = $("easter");
+  var dispatchText = $("dispatchText");
+
+  // ===== STATE =====
   var stream = null;
-  var facing = "environment"; // start with rear camera
+  var facing = "environment";
   var sampleTimer = null;
   var sampleCanvas = document.createElement("canvas");
   var sampleCtx = sampleCanvas.getContext("2d", { willReadFrequently: true });
   var lastVerdictKey = "";
+  var currentResult = null;
+  var currentHex = "#888888";
 
-  // ----- Camera -----
+  var mode = lsGet(LS.mode, "tsetse");           // "tsetse" | "wildlife"
+  var noteNumber = parseInt(lsGet(LS.note, "0"), 10) || 0;
+  var packItems = parsePackList(lsGet(LS.pack, "[]"));
+  var stampDate = lsGet(LS.stamp, "") || "";     // ISO date string (yyyy-mm-dd) or ""
+  var easterSeen = lsGet(LS.eggSeen, "") === "1";
+
+  function parsePackList(s) {
+    try { var arr = JSON.parse(s); return Array.isArray(arr) ? arr : []; }
+    catch (e) { return []; }
+  }
+  function savePackList() {
+    lsSet(LS.pack, JSON.stringify(packItems));
+  }
+  function todayISO() {
+    var d = new Date();
+    return d.getFullYear() + "-" +
+      String(d.getMonth() + 1).padStart(2, "0") + "-" +
+      String(d.getDate()).padStart(2, "0");
+  }
+  function formatStamp(iso) {
+    if (!iso) return "";
+    var parts = iso.split("-");
+    var months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+    var m = months[(parseInt(parts[1], 10) || 1) - 1];
+    return m + " " + parts[0];
+  }
+  function formatItemDate(iso) {
+    if (!iso) return "";
+    var parts = iso.split("-");
+    var months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+    var m = months[(parseInt(parts[1], 10) || 1) - 1];
+    return parts[2] + " " + m;
+  }
+
+  function setNoteNumber(n) {
+    noteNumber = n;
+    var padded = String(n).padStart(3, "0");
+    fieldNoteNum.textContent = padded;
+    noteNumberHeader.textContent = "No. " + padded;
+    lsSet(LS.note, String(n));
+  }
+  setNoteNumber(noteNumber);
+
+  // ===== CAMERA =====
   function showFallback(message) {
     if (message) fallbackText.textContent = message;
     fallback.classList.add("show");
   }
-  function hideFallback() {
-    fallback.classList.remove("show");
-  }
-
+  function hideFallback() { fallback.classList.remove("show"); }
   function stopStream() {
     if (stream) {
       stream.getTracks().forEach(function (t) { t.stop(); });
       stream = null;
     }
   }
-
   function startCamera() {
     stopStream();
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -582,7 +1395,7 @@
     navigator.mediaDevices.getUserMedia(constraints).then(function (s) {
       stream = s;
       video.srcObject = s;
-      video.play().catch(function () { /* autoplay quirks */ });
+      video.play().catch(function () {});
       hideFallback();
       scheduleSampling();
     }).catch(function (err) {
@@ -590,10 +1403,8 @@
       showFallback("Camera unavailable. Check Safari permissions, then tap Start Scanner.");
     });
   }
-
   function scheduleSampling() {
     if (sampleTimer) clearInterval(sampleTimer);
-    // take first reading once metadata is ready, then every 2s
     var firstShot = function () {
       if (video.readyState >= 2) {
         sampleFrame();
@@ -605,12 +1416,10 @@
     firstShot();
   }
 
-  // ----- Sampling -----
+  // ===== SAMPLING =====
   function sampleFrame() {
     if (!video.videoWidth) return;
-    var w = video.videoWidth;
-    var h = video.videoHeight;
-    var size = 20; // 20x20 px region at centre
+    var w = video.videoWidth, h = video.videoHeight, size = 20;
     sampleCanvas.width = size;
     sampleCanvas.height = size;
     var sx = Math.max(0, (w / 2) - (size / 2));
@@ -626,12 +1435,11 @@
       g = Math.round(g / count);
       b = Math.round(b / count);
       handleColor(r, g, b);
-    } catch (e) {
-      // canvas may throw on first frame
-    }
+      setNoteNumber(noteNumber + 1);
+    } catch (e) {}
   }
 
-  // ----- Classification -----
+  // ===== COLOR UTILS =====
   function rgbToHsl(r, g, b) {
     r /= 255; g /= 255; b /= 255;
     var max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -649,152 +1457,407 @@
     }
     return { h: h, s: s * 100, l: l * 100 };
   }
-
   function toHex(r, g, b) {
-    var h = function (n) {
-      var s = n.toString(16);
-      return s.length === 1 ? "0" + s : s;
-    };
+    var h = function (n) { var s = n.toString(16); return s.length === 1 ? "0" + s : s; };
     return "#" + h(r) + h(g) + h(b);
   }
 
-  // Classification returns { verdict: 'safe'|'caution'|'avoid', name, detail }
+  // ===== CLASSIFIER (tsetse base) =====
   function classify(r, g, b) {
     var hsl = rgbToHsl(r, g, b);
     var H = hsl.h, S = hsl.s, L = hsl.l;
 
-    // 1. Near-black / black
+    // Pure white — Avoid in both modes (antelope alarm)
+    if (L > 92 && S < 8) {
+      return {
+        verdict: "avoid",
+        name: "Pure white",
+        sub: "antelope alarm",
+        detail: "Brilliant white is the universal alarm color for game. Many antelope species flash a white rump as a flee signal — wearing it in the bush sends the same message."
+      };
+    }
+
     if (L < 14) {
       return { verdict: "avoid", name: "Black / near-black", detail: "Strongly attracts tsetse flies. Leave it in the suitcase." };
     }
-
-    // 2. Cream / ivory / white
     if (L > 86 && S < 25) {
       return { verdict: "safe", name: "Cream / ivory", detail: "A classic safari base. Light tones go largely unnoticed by tsetse." };
     }
-
-    // 3. Light grey (low saturation, mid-high lightness)
     if (S < 12 && L >= 60 && L <= 86) {
       return { verdict: "safe", name: "Light grey", detail: "Neutral and low-contrast. Safe for base layers in the bush." };
     }
-
-    // 4. Dark grey / charcoal
     if (S < 14 && L >= 14 && L < 35) {
       return { verdict: "caution", name: "Dark grey / charcoal", detail: "Sits near the threshold. Acceptable in pinches, but pair with lighter layers." };
     }
-
-    // 5. Mid grey
     if (S < 14 && L >= 35 && L < 60) {
       return { verdict: "caution", name: "Mid grey", detail: "Borderline. Tsetse aren’t drawn to it strongly, but darker greys can still attract." };
     }
-
-    // 6. Blue family — any saturated blue is Avoid
-    // Hue 195–260 covers cyan-blues through indigo
     if (H >= 195 && H <= 260 && S >= 15) {
       if (L < 25) return { verdict: "avoid", name: "Navy / dark blue", detail: "Among the most attractive colors to tsetse. Avoid entirely." };
       if (L < 50) return { verdict: "avoid", name: "Denim / true blue", detail: "Blue is the strongest visual lure for tsetse. Skip denim and indigo workwear." };
       return { verdict: "avoid", name: "Pale blue", detail: "Even lighter blues read as blue to tsetse. Better safe than scanned." };
     }
-
-    // 7. Indigo / dark purple
     if (H > 260 && H <= 290 && S >= 15 && L < 45) {
       return { verdict: "avoid", name: "Indigo / dark purple", detail: "Reads as blue to the tsetse’s visual system. Avoid." };
     }
-
-    // 8. Teal / cyan
     if (H >= 165 && H < 195 && S >= 15) {
       if (L < 55) return { verdict: "caution", name: "Teal", detail: "Sits next to blue on the spectrum. Some outdoor gear lands here — use cautiously." };
       return { verdict: "caution", name: "Light teal", detail: "Borderline. Watch in low light, when teal can read as blue." };
     }
-
-    // 9. Greens — olive, sage, forest
     if (H >= 60 && H < 165) {
-      // Deep dark green first — covers forest tones before olive/sage
-      if (L < 30) {
-        return { verdict: "safe", name: "Forest green", detail: "Deep, earthy and bush-appropriate." };
-      }
-      if (S < 35 && L < 55) {
-        return { verdict: "safe", name: "Olive / sage", detail: "A field-tested choice. Tsetse flies pass over muted greens." };
-      }
-      if (L >= 55 && S < 35) {
-        return { verdict: "safe", name: "Soft sage", detail: "Calm and earthy. Safe across most light conditions." };
-      }
+      if (L < 30) return { verdict: "safe", name: "Forest green", detail: "Deep, earthy and bush-appropriate." };
+      if (S < 35 && L < 55) return { verdict: "safe", name: "Olive / sage", detail: "A field-tested choice. Tsetse flies pass over muted greens." };
+      if (L >= 55 && S < 35) return { verdict: "safe", name: "Soft sage", detail: "Calm and earthy. Safe across most light conditions." };
       return { verdict: "safe", name: "Green", detail: "Greens generally pass. Pair with neutrals for a classic safari look." };
     }
-
-    // 10. Warm reds / terracotta / earth
     if ((H < 25 || H >= 340) && S >= 15) {
       if (L < 35) return { verdict: "safe", name: "Warm red-brown", detail: "Earthy and unobtrusive in the bush." };
       if (L < 60) return { verdict: "safe", name: "Terracotta", detail: "A warm earth tone. Tsetse are not drawn to warm reds." };
       return { verdict: "safe", name: "Soft clay", detail: "Light, warm and safari-appropriate." };
     }
-
-    // 11. Yellows / wheat / sand / khaki / tan
     if (H >= 25 && H < 60) {
       if (L >= 70) return { verdict: "safe", name: "Sand / wheat", detail: "Classic desert tone. Safe and breathable." };
       if (S < 35) return { verdict: "safe", name: "Khaki / warm tan", detail: "Quintessential safari. Light, warm, low-contrast." };
       if (L < 40) return { verdict: "safe", name: "Tobacco brown", detail: "Earth-toned and bush-friendly." };
       return { verdict: "safe", name: "Mustard / wheat", detail: "Warm and grounded. Tsetse pay it no mind." };
     }
-
-    // 12. Pinks / magentas — rare but treat as caution
     if (H >= 290 && H < 340 && S >= 15) {
       return { verdict: "caution", name: "Warm pink / magenta", detail: "Uncommon in the field. Not as risky as blue, but not classic safari." };
     }
-
-    // Fallback
     return { verdict: "caution", name: "Mixed tone", detail: "Reading sits between zones. Re-aim at a flatter, evenly lit patch." };
   }
 
+  // ===== WILDLIFE OVERLAY =====
+  // In WILDLIFE mode, a color that would be SAFE for tsetse is flipped to SPOOK
+  // if it is too bright/saturated to blend with the bush.
+  function classifyForMode(r, g, b) {
+    var result = classify(r, g, b);
+    if (mode === "wildlife" && result.verdict === "safe") {
+      var hsl = rgbToHsl(r, g, b);
+      // Bright + mid-range lightness = conspicuous against the bush
+      if (hsl.s > 60 && hsl.l > 35 && hsl.l < 78) {
+        return {
+          verdict: "spook",
+          name: result.name,
+          detail: "Bright and conspicuous against the bush. Likely to spook game and break low-impact viewing etiquette."
+        };
+      }
+    }
+    return result;
+  }
+
+  // ===== VERDICT UI =====
   function handleColor(r, g, b) {
     var hex = toHex(r, g, b);
+    currentHex = hex;
     swatchChip.style.background = hex;
     swatchHex.textContent = hex;
 
-    var result = classify(r, g, b);
-    var key = result.verdict + "|" + result.name;
-    if (key === lastVerdictKey) return;
+    var result = classifyForMode(r, g, b);
+    currentResult = result;
+
+    var key = result.verdict + "|" + result.name + "|" + (result.sub || "");
+    if (key === lastVerdictKey) {
+      updatePackButtonState();
+      return;
+    }
     lastVerdictKey = key;
 
-    verdict.classList.remove("safe", "caution", "avoid");
+    verdict.classList.remove("safe", "caution", "avoid", "spook");
     verdict.classList.add(result.verdict);
 
     var pair = VERDICT_LABELS[result.verdict];
     verdictLabel.textContent = pair.main;
-    verdictSub.textContent = pair.sub;
+    verdictSub.textContent = result.sub || pair.sub;
 
-    // Animate copy change
     [verdictName, verdictDetail].forEach(function (el) {
       el.classList.remove("fade-in");
-      // force reflow
       void el.offsetWidth;
       el.classList.add("fade-in");
     });
     verdictName.textContent = result.name;
     verdictDetail.textContent = result.detail;
+
+    updatePackButtonState();
   }
 
-  // ----- Controls -----
-  scanBtn.addEventListener("click", function () { sampleFrame(); });
+  function updatePackButtonState() {
+    if (!currentResult) {
+      packBtn.dataset.state = "disabled";
+      packBtn.disabled = true;
+      return;
+    }
+    var v = currentResult.verdict;
+    if (v === "safe") {
+      packBtn.dataset.state = "safe";
+      packBtn.disabled = false;
+    } else if (v === "caution") {
+      packBtn.dataset.state = "caution";
+      packBtn.disabled = false;
+    } else {
+      packBtn.dataset.state = "disabled";
+      packBtn.disabled = true;
+    }
+  }
 
-  flipBtn.addEventListener("click", function () {
+  // ===== MODE TOGGLE =====
+  function setMode(newMode) {
+    mode = newMode;
+    lsSet(LS.mode, mode);
+    var opts = modeToggle.querySelectorAll(".opt");
+    opts.forEach(function (o) {
+      o.classList.toggle("active", o.dataset.mode === mode);
+    });
+    modeToggle.setAttribute("aria-checked", mode === "wildlife" ? "true" : "false");
+    // Force re-classification on next sample by clearing the cache
+    lastVerdictKey = "";
+    // Re-run on current sampled color so verdict updates immediately
+    sampleFrame();
+  }
+  setMode(mode);
+  modeToggle.addEventListener("click", function () {
+    setMode(mode === "tsetse" ? "wildlife" : "tsetse");
+  });
+  modeToggle.addEventListener("keydown", function (e) {
+    if (e.key === " " || e.key === "Enter") {
+      e.preventDefault();
+      setMode(mode === "tsetse" ? "wildlife" : "tsetse");
+    }
+  });
+
+  // ===== CONTROLS =====
+  scanBtn.addEventListener("click", function () { sampleFrame(); });
+  flipIcon.addEventListener("click", function () {
     facing = (facing === "environment") ? "user" : "environment";
     startCamera();
   });
+  startBtn.addEventListener("click", function () { startCamera(); });
 
-  startBtn.addEventListener("click", function () {
-    startCamera();
+  // ===== PACK SHEET =====
+  function openSheet() {
+    if (!currentResult || packBtn.disabled) return;
+    sheetChip.style.background = currentHex;
+    sheetColorName.textContent = currentResult.name;
+    garmentName.value = "";
+    // Default category guess: first one
+    garmentCategory.value = CATEGORIES[0].id;
+    scrim.classList.add("show");
+    packSheet.classList.add("show");
+    setTimeout(function () { garmentName.focus(); }, 280);
+  }
+  function closeSheet() {
+    scrim.classList.remove("show");
+    packSheet.classList.remove("show");
+    garmentName.blur();
+  }
+  packBtn.addEventListener("click", openSheet);
+  sheetCancel.addEventListener("click", closeSheet);
+  scrim.addEventListener("click", closeSheet);
+  sheetConfirm.addEventListener("click", function () {
+    var name = garmentName.value.trim() || (currentResult ? currentResult.name : "Item");
+    var cat = garmentCategory.value;
+    var item = {
+      id: "i" + Date.now() + Math.floor(Math.random() * 1000),
+      name: name,
+      category: cat,
+      color: currentHex,
+      colorName: currentResult ? currentResult.name : "",
+      verdict: currentResult ? currentResult.verdict : "safe",
+      date: todayISO()
+    };
+    packItems.push(item);
+    savePackList();
+    renderPackProgress();
+    closeSheet();
+    checkBushReadyStatus(true);
   });
 
-  // Auto-start. Safari may block until user gesture, in which case the fallback button is shown.
-  // We attempt on load, and if it fails the catch() above shows the fallback.
+  // ===== PACK PROGRESS =====
+  function categoryCounts() {
+    var counts = {};
+    CATEGORIES.forEach(function (c) { counts[c.id] = 0; });
+    packItems.forEach(function (i) {
+      if (counts.hasOwnProperty(i.category)) counts[i.category]++;
+    });
+    return counts;
+  }
+  function totalsToward(counts) {
+    var total = 0;
+    CATEGORIES.forEach(function (c) {
+      total += Math.min(counts[c.id], c.min);
+    });
+    return total;
+  }
+  function isMinKit(counts) {
+    return CATEGORIES.every(function (c) { return counts[c.id] >= c.min; });
+  }
+  function renderPackProgress() {
+    var counts = categoryCounts();
+    var towardMin = totalsToward(counts);
+    packCount.textContent = String(towardMin);
+    renderPackList();
+  }
+  packProgress.addEventListener("click", openPackList);
+  packProgress.addEventListener("keydown", function (e) {
+    if (e.key === " " || e.key === "Enter") { e.preventDefault(); openPackList(); }
+  });
+
+  function openPackList() { renderPackList(); packlist.classList.add("show"); }
+  function closePackList() { packlist.classList.remove("show"); }
+  packlistClose.addEventListener("click", closePackList);
+
+  function renderPackList() {
+    var counts = categoryCounts();
+    var html = "";
+
+    // Badge
+    var ready = isMinKit(counts);
+    var locked = !ready;
+    var stampLabel = stampDate ? ("Bush Ready &middot; stamped " + formatStamp(stampDate)) : "Bush Ready &middot; pending";
+    html += '<div class="badge' + (locked ? " locked" : "") + '">';
+    html += '  <div class="stamp">' + (ready ? "&#10003;" : "&middot;") + '</div>';
+    html += '  <div class="stamp-text">';
+    html += '    <strong>' + stampLabel + '</strong>';
+    if (ready) {
+      html += '    <em>Minimum kit complete &mdash; you are ready for the bush.</em>';
+    } else {
+      var remaining = TOTAL_MIN - totalsToward(counts);
+      html += '    <em>' + remaining + ' more item' + (remaining === 1 ? "" : "s") + ' to reach minimum kit.</em>';
+    }
+    html += '  </div>';
+    html += '</div>';
+
+    // Categories
+    CATEGORIES.forEach(function (cat) {
+      var items = packItems.filter(function (i) { return i.category === cat.id; });
+      var c = counts[cat.id];
+      var met = c >= cat.min;
+      html += '<section class="cat-section">';
+      html += '  <div class="cat-header">';
+      html += '    <div class="cat-name">' + cat.label + '</div>';
+      html += '    <div class="cat-progress ' + (met ? "met" : "") + '">';
+      html += '      <span>' + c + '/' + cat.min + '</span>';
+      html += '      <span class="cat-checks">';
+      for (var p = 0; p < cat.min; p++) {
+        var filled = p < c;
+        html += '<span class="pip ' + (filled ? "filled" : "") + '"></span>';
+      }
+      html += '      </span>';
+      html += '    </div>';
+      html += '  </div>';
+      if (items.length === 0) {
+        html += '  <div class="cat-empty">No entries yet.</div>';
+      } else {
+        items.forEach(function (it) {
+          html += '<div class="item-row" data-id="' + it.id + '">';
+          html += '  <span class="item-chip" style="background:' + it.color + '"></span>';
+          html += '  <span class="item-name">' + escapeHtml(it.name) + '</span>';
+          html += '  <span class="item-date">' + formatItemDate(it.date) + '</span>';
+          html += '  <button class="item-del" aria-label="Remove ' + escapeHtml(it.name) + '">&times;</button>';
+          html += '</div>';
+        });
+      }
+      html += '</section>';
+    });
+
+    packlistBody.innerHTML = html;
+    // Wire delete buttons
+    var dels = packlistBody.querySelectorAll(".item-del");
+    dels.forEach(function (b) {
+      b.addEventListener("click", function () {
+        var row = b.closest(".item-row");
+        var id = row && row.getAttribute("data-id");
+        if (!id) return;
+        packItems = packItems.filter(function (i) { return i.id !== id; });
+        savePackList();
+        renderPackProgress();
+        checkBushReadyStatus(false);
+      });
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  // ===== BUSH READY STAMP / EASTER EGG =====
+  function checkBushReadyStatus(justAdded) {
+    var counts = categoryCounts();
+    var ready = isMinKit(counts);
+    if (ready) {
+      // Update date on every fresh completion
+      var prev = stampDate;
+      stampDate = todayISO();
+      lsSet(LS.stamp, stampDate);
+      // Trigger easter egg only when it transitions from incomplete -> complete
+      if (justAdded && !prev) {
+        showEasterEgg();
+      } else if (justAdded && prev && wasIncomplete) {
+        showEasterEgg();
+      }
+      wasIncomplete = false;
+    } else {
+      wasIncomplete = true;
+      // Keep stampDate as the last completed date; the badge greys via render
+    }
+    renderPackList();
+  }
+  var wasIncomplete = !isMinKit(categoryCounts());
+
+  function showEasterEgg() {
+    if (!easter) return;
+    easter.classList.add("show");
+    easter.classList.remove("signed-in");
+    // Reset and animate acacia drawing
+    var paths = easter.querySelectorAll("svg.acacia path");
+    paths.forEach(function (p, i) {
+      var len = p.getTotalLength();
+      p.style.strokeDasharray = len;
+      p.style.strokeDashoffset = len;
+      p.style.transition = "none";
+      // force reflow
+      void p.getBoundingClientRect();
+      p.style.transition = "stroke-dashoffset 800ms ease " + (i * 220) + "ms";
+      requestAnimationFrame(function () {
+        p.style.strokeDashoffset = "0";
+      });
+    });
+
+    // Start dispatch typing after the sketch begins
+    var msg = "You are ready to visit, and come back from, the bush.";
+    dispatchText.innerHTML = '<span class="caret">.</span>';
+    var i = 0;
+    var typeStart = paths.length * 220 + 400;
+    setTimeout(function tick() {
+      i++;
+      if (i > msg.length) {
+        easter.classList.add("signed-in");
+        return;
+      }
+      dispatchText.innerHTML = escapeHtml(msg.slice(0, i)) + '<span class="caret">.</span>';
+      setTimeout(tick, 38);
+    }, typeStart);
+
+    // Dismiss
+    var dismiss = function () {
+      easter.classList.remove("show");
+      easter.removeEventListener("click", dismiss);
+      lsSet(LS.eggSeen, "1");
+    };
+    easter.addEventListener("click", dismiss);
+  }
+
+  // ===== INIT =====
+  renderPackProgress();
+
   if (location.protocol === "https:" || location.protocol === "file:" || location.hostname === "localhost") {
     startCamera();
   } else {
-    showFallback("Camera requires HTTPS. Open this page over HTTPS (or on CodePen) to scan.");
+    showFallback("Camera requires HTTPS. Open this page over HTTPS (or on GitHub Pages) to scan.");
   }
 
-  // Stop the camera when the tab is hidden, restart on return.
   document.addEventListener("visibilitychange", function () {
     if (document.hidden) {
       if (sampleTimer) { clearInterval(sampleTimer); sampleTimer = null; }
