@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a1610">
+<title>Field Scanner &middot; Tsetse Safe Colour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ground: #1a1610;
+    --ground-soft: #221c14;
+    --ground-line: #2e2618;
+    --paper: #f4ead5;
+    --paper-dim: #c8b89a;
+    --paper-faint: rgba(244, 234, 213, 0.55);
+    --gold: #c8a85a;
+    --gold-dim: rgba(200, 168, 90, 0.45);
+    --gold-faint: rgba(200, 168, 90, 0.18);
+    --safe: #3a7d44;
+    --caution: #b87333;
+    --avoid: #c0392b;
+    --shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    --serif: "Playfair Display", "Times New Roman", serif;
+    --mono: "DM Mono", "SFMono-Regular", Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--ground);
+    color: var(--paper);
+    font-family: var(--mono);
+    overscroll-behavior: none;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  .app {
+    width: 100%;
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background:
+      radial-gradient(120% 50% at 50% 0%, rgba(200, 168, 90, 0.06), transparent 60%),
+      var(--ground);
+  }
+
+  /* ------- HEADER ------- */
+  .header {
+    padding: 22px 24px 18px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--ground-line);
+  }
+  .header-title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .wordmark {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-style: italic;
+    font-size: 24px;
+    line-height: 1;
+    color: var(--paper);
+    letter-spacing: 0.01em;
+  }
+  .mark {
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--gold-dim);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+  }
+
+  /* ------- CAMERA ------- */
+  .stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    background: #000;
+    overflow: hidden;
+  }
+  .stage video,
+  .stage canvas.preview {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000;
+  }
+  .stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 70%, rgba(0,0,0,0.55) 100%);
+    z-index: 2;
+  }
+
+  /* Corner brackets — Leica framing feel */
+  .frame-corner {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--gold);
+    opacity: 0.7;
+    z-index: 3;
+  }
+  .frame-corner.tl { top: 18px; left: 18px; border-right: none; border-bottom: none; }
+  .frame-corner.tr { top: 18px; right: 18px; border-left: none; border-bottom: none; }
+  .frame-corner.bl { bottom: 18px; left: 18px; border-right: none; border-top: none; }
+  .frame-corner.br { bottom: 18px; right: 18px; border-left: none; border-top: none; }
+
+  /* Center crosshair */
+  .crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 92px;
+    height: 92px;
+    z-index: 3;
+    pointer-events: none;
+  }
+  .crosshair .ring {
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    opacity: 0.85;
+  }
+  .crosshair .ring.inner {
+    inset: 32px;
+    border-color: var(--gold-dim);
+  }
+  .crosshair .tick {
+    position: absolute;
+    background: var(--gold);
+    opacity: 0.7;
+  }
+  .crosshair .tick.t { top: -8px; left: 50%; transform: translateX(-50%); width: 1px; height: 8px; }
+  .crosshair .tick.b { bottom: -8px; left: 50%; transform: translateX(-50%); width: 1px; height: 8px; }
+  .crosshair .tick.l { left: -8px; top: 50%; transform: translateY(-50%); width: 8px; height: 1px; }
+  .crosshair .tick.r { right: -8px; top: 50%; transform: translateY(-50%); width: 8px; height: 1px; }
+
+  /* Live read indicator (small chip top-left) */
+  .live-chip {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(26, 22, 16, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--gold-faint);
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--paper-dim);
+  }
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 8px var(--gold);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; transform: scale(0.85); }
+    50% { opacity: 1; transform: scale(1.1); }
+  }
+
+  /* Sampled color preview (bottom-right) */
+  .swatch-preview {
+    position: absolute;
+    bottom: 18px;
+    right: 18px;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px 8px 8px;
+    background: rgba(26, 22, 16, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--gold-faint);
+    border-radius: 14px;
+  }
+  .swatch-preview .chip {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: #333;
+    border: 1px solid rgba(244, 234, 213, 0.15);
+    transition: background 220ms ease;
+  }
+  .swatch-preview .hex {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--paper-dim);
+    text-transform: uppercase;
+  }
+
+  /* Camera-off / permission state */
+  .stage-fallback {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 32px;
+    text-align: center;
+    background: linear-gradient(180deg, #1a1610, #0f0c08);
+  }
+  .stage-fallback.show { display: flex; }
+  .stage-fallback .icon {
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--gold-dim);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    font-family: var(--serif);
+    font-style: italic;
+  }
+  .stage-fallback p {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--paper-dim);
+    max-width: 280px;
+  }
+  .stage-fallback .start {
+    margin-top: 6px;
+    padding: 10px 22px;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  /* ------- VERDICT ------- */
+  .verdict {
+    padding: 26px 24px 22px;
+    border-bottom: 1px solid var(--ground-line);
+    background: linear-gradient(180deg, var(--ground) 0%, var(--ground-soft) 100%);
+    transition: background 320ms ease;
+  }
+  .verdict-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .verdict-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--paper-faint);
+    box-shadow: 0 0 0 4px rgba(244, 234, 213, 0.08);
+    transition: background 320ms ease, box-shadow 320ms ease;
+  }
+  .verdict-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--paper-dim);
+  }
+  .verdict-name {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 30px;
+    line-height: 1.1;
+    color: var(--paper);
+    margin: 0 0 8px;
+    letter-spacing: 0.005em;
+  }
+  .verdict-detail {
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--paper-dim);
+    margin: 0;
+    max-width: 38ch;
+  }
+
+  /* Verdict tints */
+  .verdict.safe .verdict-dot { background: var(--safe); box-shadow: 0 0 0 4px rgba(58, 125, 68, 0.18); }
+  .verdict.safe .verdict-label { color: var(--safe); }
+
+  .verdict.caution .verdict-dot { background: var(--caution); box-shadow: 0 0 0 4px rgba(184, 115, 51, 0.18); }
+  .verdict.caution .verdict-label { color: var(--caution); }
+
+  .verdict.avoid .verdict-dot { background: var(--avoid); box-shadow: 0 0 0 4px rgba(192, 57, 43, 0.2); }
+  .verdict.avoid .verdict-label { color: var(--avoid); }
+
+  /* ------- CONTROLS ------- */
+  .controls {
+    display: flex;
+    gap: 12px;
+    padding: 20px 24px 26px;
+    border-bottom: 1px solid var(--ground-line);
+  }
+  .btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 14px 8px;
+    background: transparent;
+    border: 1px solid var(--gold-faint);
+    border-radius: 14px;
+    color: var(--paper);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 160ms ease, background 160ms ease, transform 60ms ease;
+  }
+  .btn:active {
+    transform: scale(0.98);
+    background: rgba(200, 168, 90, 0.06);
+  }
+  .btn.primary {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  .btn .glyph {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--gold);
+  }
+
+  /* ------- FOOTER / META ------- */
+  .meta {
+    margin-top: auto;
+    padding: 18px 24px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--paper-faint);
+  }
+  .meta .rule {
+    flex: 1;
+    height: 1px;
+    background: var(--ground-line);
+    margin: 0 14px;
+  }
+
+  /* Subtle entrance */
+  .fade-in { animation: fade 320ms ease both; }
+  @keyframes fade {
+    from { opacity: 0; transform: translateY(2px); }
+    to { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+
+    <header class="header">
+      <div class="header-title">
+        <span class="eyebrow">Field Instrument &middot; No. 01</span>
+        <span class="wordmark">Safe Colour</span>
+      </div>
+      <div class="mark" aria-hidden="true">S</div>
+    </header>
+
+    <section class="stage" id="stage">
+      <video id="video" autoplay playsinline muted></video>
+      <canvas class="preview" id="preview" hidden></canvas>
+
+      <span class="frame-corner tl"></span>
+      <span class="frame-corner tr"></span>
+      <span class="frame-corner bl"></span>
+      <span class="frame-corner br"></span>
+
+      <div class="live-chip" id="liveChip">
+        <span class="live-dot"></span>
+        <span>Sampling</span>
+      </div>
+
+      <div class="crosshair">
+        <div class="ring"></div>
+        <div class="ring inner"></div>
+        <span class="tick t"></span>
+        <span class="tick b"></span>
+        <span class="tick l"></span>
+        <span class="tick r"></span>
+      </div>
+
+      <div class="swatch-preview" id="swatchPreview">
+        <span class="chip" id="swatchChip"></span>
+        <span class="hex" id="swatchHex">&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;</span>
+      </div>
+
+      <div class="stage-fallback" id="fallback">
+        <span class="icon" aria-hidden="true">i</span>
+        <p id="fallbackText">Tap to start the camera. Safari will ask for permission; allow it to begin scanning.</p>
+        <button class="start" id="startBtn">Start Scanner</button>
+      </div>
+    </section>
+
+    <section class="verdict" id="verdict">
+      <div class="verdict-row">
+        <span class="verdict-dot"></span>
+        <span class="verdict-label" id="verdictLabel">Awaiting reading</span>
+      </div>
+      <h1 class="verdict-name" id="verdictName">Hold the crosshair on a garment</h1>
+      <p class="verdict-detail" id="verdictDetail">Centre the target on a flat patch of fabric in natural light. A reading is taken every two seconds.</p>
+    </section>
+
+    <div class="controls">
+      <button class="btn primary" id="scanBtn" type="button">
+        <span class="glyph">&#9678;</span>
+        Scan
+      </button>
+      <button class="btn" id="flipBtn" type="button">
+        <span class="glyph">&#8634;</span>
+        Flip
+      </button>
+    </div>
+
+    <footer class="meta">
+      <span>Lat. tsetse studies</span>
+      <span class="rule"></span>
+      <span>v 0.1</span>
+    </footer>
+
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ----- DOM -----
+  var video = document.getElementById("video");
+  var preview = document.getElementById("preview");
+  var stage = document.getElementById("stage");
+  var swatchChip = document.getElementById("swatchChip");
+  var swatchHex = document.getElementById("swatchHex");
+  var verdict = document.getElementById("verdict");
+  var verdictLabel = document.getElementById("verdictLabel");
+  var verdictName = document.getElementById("verdictName");
+  var verdictDetail = document.getElementById("verdictDetail");
+  var fallback = document.getElementById("fallback");
+  var fallbackText = document.getElementById("fallbackText");
+  var startBtn = document.getElementById("startBtn");
+  var scanBtn = document.getElementById("scanBtn");
+  var flipBtn = document.getElementById("flipBtn");
+
+  // ----- State -----
+  var stream = null;
+  var facing = "environment"; // start with rear camera
+  var sampleTimer = null;
+  var sampleCanvas = document.createElement("canvas");
+  var sampleCtx = sampleCanvas.getContext("2d", { willReadFrequently: true });
+  var lastVerdictKey = "";
+
+  // ----- Camera -----
+  function showFallback(message) {
+    if (message) fallbackText.textContent = message;
+    fallback.classList.add("show");
+  }
+  function hideFallback() {
+    fallback.classList.remove("show");
+  }
+
+  function stopStream() {
+    if (stream) {
+      stream.getTracks().forEach(function (t) { t.stop(); });
+      stream = null;
+    }
+  }
+
+  function startCamera() {
+    stopStream();
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showFallback("This browser does not support camera access. Open in Safari on iPhone.");
+      return;
+    }
+    var constraints = {
+      audio: false,
+      video: {
+        facingMode: { ideal: facing },
+        width: { ideal: 1280 },
+        height: { ideal: 1280 }
+      }
+    };
+    navigator.mediaDevices.getUserMedia(constraints).then(function (s) {
+      stream = s;
+      video.srcObject = s;
+      video.play().catch(function () { /* autoplay quirks */ });
+      hideFallback();
+      scheduleSampling();
+    }).catch(function (err) {
+      console.warn("Camera error:", err);
+      showFallback("Camera unavailable. Check Safari permissions, then tap Start Scanner.");
+    });
+  }
+
+  function scheduleSampling() {
+    if (sampleTimer) clearInterval(sampleTimer);
+    // take first reading once metadata is ready, then every 2s
+    var firstShot = function () {
+      if (video.readyState >= 2) {
+        sampleFrame();
+        sampleTimer = setInterval(sampleFrame, 2000);
+      } else {
+        setTimeout(firstShot, 200);
+      }
+    };
+    firstShot();
+  }
+
+  // ----- Sampling -----
+  function sampleFrame() {
+    if (!video.videoWidth) return;
+    var w = video.videoWidth;
+    var h = video.videoHeight;
+    var size = 20; // 20x20 px region at centre
+    sampleCanvas.width = size;
+    sampleCanvas.height = size;
+    var sx = Math.max(0, (w / 2) - (size / 2));
+    var sy = Math.max(0, (h / 2) - (size / 2));
+    try {
+      sampleCtx.drawImage(video, sx, sy, size, size, 0, 0, size, size);
+      var data = sampleCtx.getImageData(0, 0, size, size).data;
+      var r = 0, g = 0, b = 0, count = 0;
+      for (var i = 0; i < data.length; i += 4) {
+        r += data[i]; g += data[i + 1]; b += data[i + 2]; count++;
+      }
+      r = Math.round(r / count);
+      g = Math.round(g / count);
+      b = Math.round(b / count);
+      handleColor(r, g, b);
+    } catch (e) {
+      // canvas may throw on first frame
+    }
+  }
+
+  // ----- Classification -----
+  function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+    var h, s, l = (max + min) / 2;
+    if (max === min) { h = 0; s = 0; }
+    else {
+      var d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h *= 60;
+    }
+    return { h: h, s: s * 100, l: l * 100 };
+  }
+
+  function toHex(r, g, b) {
+    var h = function (n) {
+      var s = n.toString(16);
+      return s.length === 1 ? "0" + s : s;
+    };
+    return "#" + h(r) + h(g) + h(b);
+  }
+
+  // Classification returns { verdict: 'safe'|'caution'|'avoid', name, detail }
+  function classify(r, g, b) {
+    var hsl = rgbToHsl(r, g, b);
+    var H = hsl.h, S = hsl.s, L = hsl.l;
+
+    // 1. Near-black / black
+    if (L < 14) {
+      return { verdict: "avoid", name: "Black / near-black", detail: "Strongly attracts tsetse flies. Leave this in the suitcase." };
+    }
+
+    // 2. Cream / ivory / white
+    if (L > 86 && S < 25) {
+      return { verdict: "safe", name: "Cream / ivory", detail: "A classic safari base. Light tones go largely unnoticed by tsetse." };
+    }
+
+    // 3. Light grey (low saturation, mid-high lightness)
+    if (S < 12 && L >= 60 && L <= 86) {
+      return { verdict: "safe", name: "Light grey", detail: "Neutral and low-contrast. Safe for base layers in the bush." };
+    }
+
+    // 4. Dark grey / charcoal
+    if (S < 14 && L >= 14 && L < 35) {
+      return { verdict: "caution", name: "Dark grey / charcoal", detail: "Sits near the threshold. Acceptable in pinches, but pair with lighter layers." };
+    }
+
+    // 5. Mid grey
+    if (S < 14 && L >= 35 && L < 60) {
+      return { verdict: "caution", name: "Mid grey", detail: "Borderline. Tsetse aren’t drawn to it strongly, but darker greys can still attract." };
+    }
+
+    // 6. Blue family — any saturated blue is Avoid
+    // Hue 195–260 covers cyan-blues through indigo
+    if (H >= 195 && H <= 260 && S >= 15) {
+      if (L < 25) return { verdict: "avoid", name: "Navy / dark blue", detail: "Among the most attractive colours to tsetse. Avoid entirely." };
+      if (L < 50) return { verdict: "avoid", name: "Denim / true blue", detail: "Blue is the strongest visual lure for tsetse. Skip denim and indigo workwear." };
+      return { verdict: "avoid", name: "Pale blue", detail: "Even lighter blues read as blue to tsetse. Better safe than scanned." };
+    }
+
+    // 7. Indigo / dark purple
+    if (H > 260 && H <= 290 && S >= 15 && L < 45) {
+      return { verdict: "avoid", name: "Indigo / dark purple", detail: "Reads as blue to the tsetse’s visual system. Avoid." };
+    }
+
+    // 8. Teal / cyan
+    if (H >= 165 && H < 195 && S >= 15) {
+      if (L < 55) return { verdict: "caution", name: "Teal", detail: "Sits next to blue on the spectrum. Some outdoor gear lands here — use cautiously." };
+      return { verdict: "caution", name: "Light teal", detail: "Borderline. Watch in low light, when teal can read as blue." };
+    }
+
+    // 9. Greens — olive, sage, forest
+    if (H >= 60 && H < 165) {
+      // Deep dark green first — covers forest tones before olive/sage
+      if (L < 30) {
+        return { verdict: "safe", name: "Forest green", detail: "Deep, earthy and bush-appropriate." };
+      }
+      if (S < 35 && L < 55) {
+        return { verdict: "safe", name: "Olive / sage", detail: "A field-tested choice. Tsetse flies pass over muted greens." };
+      }
+      if (L >= 55 && S < 35) {
+        return { verdict: "safe", name: "Soft sage", detail: "Calm and earthy. Safe across most light conditions." };
+      }
+      return { verdict: "safe", name: "Green", detail: "Greens generally pass. Pair with neutrals for a classic safari look." };
+    }
+
+    // 10. Warm reds / terracotta / earth
+    if ((H < 25 || H >= 340) && S >= 15) {
+      if (L < 35) return { verdict: "safe", name: "Warm red-brown", detail: "Earthy and unobtrusive in the bush." };
+      if (L < 60) return { verdict: "safe", name: "Terracotta", detail: "A warm earth tone. Tsetse are not drawn to warm reds." };
+      return { verdict: "safe", name: "Soft clay", detail: "Light, warm and safari-appropriate." };
+    }
+
+    // 11. Yellows / wheat / sand / khaki / tan
+    if (H >= 25 && H < 60) {
+      if (L >= 70) return { verdict: "safe", name: "Sand / wheat", detail: "Classic desert tone. Safe and breathable." };
+      if (S < 35) return { verdict: "safe", name: "Khaki / warm tan", detail: "Quintessential safari. Light, warm, low-contrast." };
+      if (L < 40) return { verdict: "safe", name: "Tobacco brown", detail: "Earth-toned and bush-friendly." };
+      return { verdict: "safe", name: "Mustard / wheat", detail: "Warm and grounded. Tsetse pay it no mind." };
+    }
+
+    // 12. Pinks / magentas — rare but treat as caution
+    if (H >= 290 && H < 340 && S >= 15) {
+      return { verdict: "caution", name: "Warm pink / magenta", detail: "Uncommon in the field. Not as risky as blue, but not classic safari." };
+    }
+
+    // Fallback
+    return { verdict: "caution", name: "Mixed tone", detail: "Reading sits between zones. Re-aim at a flatter, evenly lit patch." };
+  }
+
+  function handleColor(r, g, b) {
+    var hex = toHex(r, g, b);
+    swatchChip.style.background = hex;
+    swatchHex.textContent = hex;
+
+    var result = classify(r, g, b);
+    var key = result.verdict + "|" + result.name;
+    if (key === lastVerdictKey) return;
+    lastVerdictKey = key;
+
+    verdict.classList.remove("safe", "caution", "avoid");
+    verdict.classList.add(result.verdict);
+
+    var label = result.verdict === "safe" ? "Safe to wear"
+              : result.verdict === "caution" ? "Borderline" : "Avoid in the bush";
+    verdictLabel.textContent = label;
+
+    // Animate copy change
+    [verdictName, verdictDetail].forEach(function (el) {
+      el.classList.remove("fade-in");
+      // force reflow
+      void el.offsetWidth;
+      el.classList.add("fade-in");
+    });
+    verdictName.textContent = result.name;
+    verdictDetail.textContent = result.detail;
+  }
+
+  // ----- Controls -----
+  scanBtn.addEventListener("click", function () { sampleFrame(); });
+
+  flipBtn.addEventListener("click", function () {
+    facing = (facing === "environment") ? "user" : "environment";
+    startCamera();
+  });
+
+  startBtn.addEventListener("click", function () {
+    startCamera();
+  });
+
+  // Auto-start. Safari may block until user gesture, in which case the fallback button is shown.
+  // We attempt on load, and if it fails the catch() above shows the fallback.
+  if (location.protocol === "https:" || location.protocol === "file:" || location.hostname === "localhost") {
+    startCamera();
+  } else {
+    showFallback("Camera requires HTTPS. Open this page over HTTPS (or on CodePen) to scan.");
+  }
+
+  // Stop the camera when the tab is hidden, restart on return.
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) {
+      if (sampleTimer) { clearInterval(sampleTimer); sampleTimer = null; }
+      stopStream();
+    } else {
+      startCamera();
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
