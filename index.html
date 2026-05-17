@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1a1610">
-<title>Field Scanner &middot; Tsetse Safe Colour</title>
+<title>Field Scanner &middot; Tsetse Safe Color</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -313,12 +313,29 @@
     box-shadow: 0 0 0 4px rgba(244, 234, 213, 0.08);
     transition: background 320ms ease, box-shadow 320ms ease;
   }
+  .verdict-eyebrow {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
   .verdict-label {
     font-family: var(--mono);
     font-size: 11px;
     letter-spacing: 0.28em;
     text-transform: uppercase;
     color: var(--paper-dim);
+    line-height: 1.1;
+  }
+  .verdict-sub {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.15;
+    letter-spacing: 0.005em;
+    color: var(--paper-dim);
+    opacity: 0.85;
   }
   .verdict-name {
     font-family: var(--serif);
@@ -424,7 +441,7 @@
     <header class="header">
       <div class="header-title">
         <span class="eyebrow">Field Instrument &middot; No. 01</span>
-        <span class="wordmark">Safe Colour</span>
+        <span class="wordmark">Safe Color</span>
       </div>
       <div class="mark" aria-hidden="true">S</div>
     </header>
@@ -467,10 +484,13 @@
     <section class="verdict" id="verdict">
       <div class="verdict-row">
         <span class="verdict-dot"></span>
-        <span class="verdict-label" id="verdictLabel">Awaiting reading</span>
+        <div class="verdict-eyebrow">
+          <span class="verdict-label" id="verdictLabel">Awaiting reading</span>
+          <span class="verdict-sub" id="verdictSub">stand by for a sample</span>
+        </div>
       </div>
       <h1 class="verdict-name" id="verdictName">Hold the crosshair on a garment</h1>
-      <p class="verdict-detail" id="verdictDetail">Centre the target on a flat patch of fabric in natural light. A reading is taken every two seconds.</p>
+      <p class="verdict-detail" id="verdictDetail">Center the target on a flat patch of fabric in natural light. A reading is taken every two seconds.</p>
     </section>
 
     <div class="controls">
@@ -504,8 +524,17 @@
   var swatchHex = document.getElementById("swatchHex");
   var verdict = document.getElementById("verdict");
   var verdictLabel = document.getElementById("verdictLabel");
+  var verdictSub = document.getElementById("verdictSub");
   var verdictName = document.getElementById("verdictName");
   var verdictDetail = document.getElementById("verdictDetail");
+
+  // Two-line eyebrow labels per verdict. Top line is the call.
+  // Italic line underneath is the wink underneath.
+  var VERDICT_LABELS = {
+    safe:    { main: "Bush-approved",     sub: "tsetse invisibility" },
+    caution: { main: "Bush-borderline",   sub: "approach with caution" },
+    avoid:   { main: "Avoid in the bush", sub: "tsetse magnet" }
+  };
   var fallback = document.getElementById("fallback");
   var fallbackText = document.getElementById("fallbackText");
   var startBtn = document.getElementById("startBtn");
@@ -636,7 +665,7 @@
 
     // 1. Near-black / black
     if (L < 14) {
-      return { verdict: "avoid", name: "Black / near-black", detail: "Strongly attracts tsetse flies. Leave this in the suitcase." };
+      return { verdict: "avoid", name: "Black / near-black", detail: "Strongly attracts tsetse flies. Leave it in the suitcase." };
     }
 
     // 2. Cream / ivory / white
@@ -662,7 +691,7 @@
     // 6. Blue family — any saturated blue is Avoid
     // Hue 195–260 covers cyan-blues through indigo
     if (H >= 195 && H <= 260 && S >= 15) {
-      if (L < 25) return { verdict: "avoid", name: "Navy / dark blue", detail: "Among the most attractive colours to tsetse. Avoid entirely." };
+      if (L < 25) return { verdict: "avoid", name: "Navy / dark blue", detail: "Among the most attractive colors to tsetse. Avoid entirely." };
       if (L < 50) return { verdict: "avoid", name: "Denim / true blue", detail: "Blue is the strongest visual lure for tsetse. Skip denim and indigo workwear." };
       return { verdict: "avoid", name: "Pale blue", detail: "Even lighter blues read as blue to tsetse. Better safe than scanned." };
     }
@@ -730,9 +759,9 @@
     verdict.classList.remove("safe", "caution", "avoid");
     verdict.classList.add(result.verdict);
 
-    var label = result.verdict === "safe" ? "Safe to wear"
-              : result.verdict === "caution" ? "Borderline" : "Avoid in the bush";
-    verdictLabel.textContent = label;
+    var pair = VERDICT_LABELS[result.verdict];
+    verdictLabel.textContent = pair.main;
+    verdictSub.textContent = pair.sub;
 
     // Animate copy change
     [verdictName, verdictDetail].forEach(function (el) {
